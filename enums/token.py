@@ -2,6 +2,7 @@ from enum import StrEnum, auto
 
 
 class Token(StrEnum):
+    START = auto()
     EOF = auto()
     ADD = auto()
     SUBTRACT = auto()

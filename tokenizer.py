@@ -1,30 +1,29 @@
 from io import TextIOBase
 from typing import Union
-from decimal import Decimal
 
 from enums import *
 
 
 class Tokenizer:
     def __init__(self, reader: TextIOBase):
-        all_tokens = list(Token)
         operations = list(Operation)
         allowed_before_operations = [Token.CLOSE_PARENS, Token.IDENTIFIER, Token.NUMBER]
         self.__allowed_prev_token_map = {
-            Token.EOF: all_tokens,
+            Token.START: [Token.OPEN_PARENS, Token.IDENTIFIER, Token.NUMBER, Token.SUBTRACT],
+            Token.EOF: [Token.CLOSE_PARENS, Token.IDENTIFIER, Token.NUMBER],
             Token.ADD: allowed_before_operations,
-            Token.SUBTRACT: allowed_before_operations + [Token.OPEN_PARENS],
+            Token.SUBTRACT: allowed_before_operations + [Token.OPEN_PARENS, Token.START],
             Token.MULTIPLY: allowed_before_operations,
             Token.DIVIDE: allowed_before_operations,
-            Token.OPEN_PARENS: operations + [Token.OPEN_PARENS, Token.IDENTIFIER, Token.NUMBER],
+            Token.OPEN_PARENS: operations + [Token.OPEN_PARENS, Token.IDENTIFIER, Token.NUMBER, Token.START],
             Token.CLOSE_PARENS: [Token.IDENTIFIER, Token.NUMBER, Token.CLOSE_PARENS],
             Token.COMMA: [Token.IDENTIFIER, Token.NUMBER],
-            Token.IDENTIFIER: operations + [Token.IDENTIFIER, Token.NUMBER, Token.OPEN_PARENS],
-            Token.NUMBER: operations + [Token.COMMA, Token.IDENTIFIER, Token.NUMBER, Token.OPEN_PARENS],
+            Token.IDENTIFIER: operations + [Token.IDENTIFIER, Token.NUMBER, Token.OPEN_PARENS, Token.START],
+            Token.NUMBER: operations + [Token.COMMA, Token.IDENTIFIER, Token.NUMBER, Token.OPEN_PARENS, Token.START],
         }
         self.__reader = reader
         self.__current_char = None
-        self.__current_token = None
+        self.__current_token = Token.START
         self.__prev_token = None
         self.__number = None
         self.__identifier = None
@@ -38,6 +37,11 @@ class Tokenizer:
     @property
     def token(self) -> Token:
         return self.__current_token
+
+    @token.setter
+    def token(self, value: Token):
+        self.__prev_token = self.__current_token
+        self.__current_token = value
 
     @property
     def number(self) -> float:
@@ -56,7 +60,7 @@ class Tokenizer:
             self.__next_char()
 
         if self.__current_char == '\0':
-            self.__current_token = Token.EOF
+            self.token = Token.EOF
             self.__check_prev_token()
             return
 
@@ -71,11 +75,11 @@ class Tokenizer:
         }
 
         if self.__current_char in special_characters:
-            self.__current_token = special_characters[self.__current_char]
+            self.token = special_characters[self.__current_char]
             self.__next_char()
             self.__check_prev_token()
             return
-
+        # check if is number
         if self.__current_char.isdigit() or self.__current_char == '.':
             sb = []
             have_decimal_point = False
@@ -83,23 +87,21 @@ class Tokenizer:
                 sb.append(self.__current_char)
                 have_decimal_point = self.__current_char == '.'
                 self.__next_char()
-            self.__number = Decimal(''.join(sb))
-            self.__current_token = Token.NUMBER
+            self.__number = float(''.join(sb))
+            self.token = Token.NUMBER
             self.__check_prev_token()
             return
-
+        # check if identifier which should start with letter or underscore
         if self.__current_char.isalpha() or self.__current_char == '_':
             sb = []
             while self.__current_char.isalnum() or self.__current_char == '_':
                 sb.append(self.__current_char)
                 self.__next_char()
             self.__identifier = ''.join(sb)
-            self.__current_token = Token.IDENTIFIER
+            self.token = Token.IDENTIFIER
             self.__check_prev_token()
             return
 
     def __check_prev_token(self):
-        if (self.__prev_token != Token.EOF and
-                self.__prev_token is not None and
-                self.__prev_token not in self.__allowed_prev_token_map[self.token]):
+        if self.__prev_token not in self.__allowed_prev_token_map[self.__current_token]:
             raise SyntaxError(f"Unexpected token {self.token} after {self.prev_token}")
