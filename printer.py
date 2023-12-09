@@ -20,5 +20,8 @@ class Printer:
                 new_is_last = index == len(children) - 1
                 self.__print_node(child, header=h, is_last=new_is_last)
 
-    def print(self):
-        return self.__print_node(self.__n)
+    @staticmethod
+    def print(n: Node):
+        p = Printer(n)
+        return p.__print_node(n)
+
