@@ -14,5 +14,15 @@ class NodeNumber(Node):
     def number(self, number: float):
         self.__number = number
 
+    @property
+    def name(self) -> str:
+        return str(self.__number)
+
     def eval(self, _: Context = None):
         return self.__number
+
+    def get_height(self) -> int:
+        return 0
+
+    def get_children(self) -> list:
+        pass

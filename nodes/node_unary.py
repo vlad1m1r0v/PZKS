@@ -25,7 +25,17 @@ class NodeUnary(Node):
     def operation(self, operation: Operation):
         self.__operation = operation
 
+    @property
+    def name(self) -> str:
+        return str(self.__operation)
+
     def eval(self, ctx: Context = None):
         rhs_val = self.__right.eval(ctx)
         result = Calculator.execute_unary(self.__operation, rhs_val)
         return result
+
+    def get_height(self) -> int:
+        return self.__right.get_height() + 1
+
+    def get_children(self) -> list:
+        pass
