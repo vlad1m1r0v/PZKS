@@ -1,5 +1,4 @@
 from nodes import Node
-from parser import Parser
 
 
 class Printer:
@@ -23,4 +22,3 @@ class Printer:
 
     def print(self):
         return self.__print_node(self.__n)
-

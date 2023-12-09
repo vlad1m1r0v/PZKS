@@ -4,7 +4,6 @@ import unittest
 
 from enums import Token
 from parser import Parser
-from printer import Printer
 from tokenizer import Tokenizer
 from context import ReflectionContext
 
