@@ -21,6 +21,10 @@ class NodeUnary(Node):
     def operation(self):
         return self.__operation
 
+    @property
+    def has_children(self) -> bool:
+        return True
+
     @operation.setter
     def operation(self, operation: Operation):
         self.__operation = operation
@@ -38,4 +42,4 @@ class NodeUnary(Node):
         return self.__right.get_height() + 1
 
     def get_children(self) -> list:
-        pass
+        return [self.__right]

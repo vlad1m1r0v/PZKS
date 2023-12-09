@@ -15,6 +15,10 @@ class NodeFunction(Node):
     def arguments(self):
         return self.__arguments
 
+    @arguments.setter
+    def arguments(self, arguments: list[Node]):
+        self.__arguments = arguments
+
     @property
     def has_children(self) -> bool:
         return True
