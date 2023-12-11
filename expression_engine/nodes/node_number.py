@@ -1,5 +1,5 @@
-from context import Context
-from nodes import Node
+from expression_engine.context import Context
+from expression_engine.nodes import Node
 
 
 class NodeNumber(Node):

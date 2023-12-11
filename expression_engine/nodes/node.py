@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABC
 from typing import Union
 
-from context import Context
+from expression_engine.context import Context
 
 
 class Node(ABC):

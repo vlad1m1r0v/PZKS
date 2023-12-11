@@ -1,4 +1,4 @@
-from enums import Operation
+from expression_engine.enums import Operation
 
 
 class Calculator:

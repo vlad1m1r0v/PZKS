@@ -1,8 +1,8 @@
 from io import StringIO
 
-from nodes import *
-from enums import *
-from tokenizer import Tokenizer
+from expression_engine.nodes import *
+from expression_engine.enums import *
+from expression_engine.tokenizer import Tokenizer
 
 
 class Parser:

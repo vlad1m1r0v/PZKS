@@ -1,4 +1,4 @@
-from nodes import Node
+from expression_engine.nodes import Node
 
 
 class Printer:

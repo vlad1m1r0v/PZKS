@@ -1,7 +1,7 @@
 from io import TextIOBase
 from typing import Union
 
-from enums import *
+from expression_engine.enums import *
 
 
 class Tokenizer:

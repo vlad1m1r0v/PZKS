@@ -2,10 +2,10 @@ import math
 from io import StringIO
 import unittest
 
-from enums import Token
-from parser import Parser
-from tokenizer import Tokenizer
-from context import ReflectionContext
+from expression_engine.enums import Token
+from expression_engine.parser import Parser
+from expression_engine.tokenizer import Tokenizer
+from expression_engine.context import ReflectionContext
 
 
 class TestParser(unittest.TestCase):

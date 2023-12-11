@@ -1,6 +1,6 @@
 import unittest
-from parser import Parser
-from optimizer import Optimizer
+from expression_engine.parser import Parser
+from expression_engine.optimizer import Optimizer
 
 
 class TestOptimizer(unittest.TestCase):

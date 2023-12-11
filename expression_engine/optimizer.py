@@ -1,5 +1,5 @@
-from nodes import *
-from enums import Operation
+from expression_engine.nodes import *
+from expression_engine.enums import Operation
 
 
 class Optimizer:
@@ -34,15 +34,22 @@ class Optimizer:
             return NodeFunction(name=n.name,
                                 arguments=[self.__replace_subtract(arg) for arg in n.arguments])
         if isinstance(n, NodeBinary):
+            # Example: exp_1 - exp_2 = exp_1 + (-exp2)
             op = Operation.ADD if n.operation == Operation.SUBTRACT else n.operation
             right = NodeUnary(n.right, Operation.MINUS) if n.operation == Operation.SUBTRACT else n.right
             return NodeBinary(self.__replace_subtract(n.left), self.__replace_subtract(right), op)
         if isinstance(n, NodeUnary) and n.operation == Operation.MINUS:
             if isinstance(n.right, NodeNumber):
+                # NodeUnary(value, minus) -> NodeNumber(-value)
                 return NodeNumber(-n.right.number)
-            if isinstance(n.right, NodeVariable):
+            # can't get rid of minus sign in variables and functions, so we return them
+            elif type(n.right) in [NodeVariable, NodeFunction]:
                 return n
+            # Example: -(-sin(x)) = sin(x)
+            elif isinstance(n.right, NodeUnary) and n.right.operation == Operation.MINUS:
+                return n.right.right
             else:
+                # for binary node
                 return self.__replace_subtract(n.right)
         return n
 
@@ -114,4 +121,3 @@ class Optimizer:
         o = Optimizer()
         without_subtract = o.__replace_subtract(n)
         return o.__balance(without_subtract)
-
