@@ -33,16 +33,19 @@ class Optimizer:
 
     def __replace_subtract(self, n: Node):
         if isinstance(n, NodeFunction):
-            n.arguments = [self.__replace_subtract(arg) for arg in n.arguments]
+            return NodeFunction(name=n.name,
+                                arguments=[self.__replace_subtract(arg) for arg in n.arguments])
         if isinstance(n, NodeBinary):
-            if n.operation == Operation.SUBTRACT:
-                n.operation = Operation.ADD
-                n.right = NodeUnary(n.right, Operation.MINUS)
-            self.__replace_subtract(n.left)
-            self.__replace_subtract(n.right)
+            op = Operation.ADD if n.operation == Operation.SUBTRACT else n.operation
+            right = NodeUnary(n.right, Operation.MINUS) if n.operation == Operation.SUBTRACT else n.right
+            return NodeBinary(self.__replace_subtract(n.left), self.__replace_subtract(right), op)
         if isinstance(n, NodeUnary) and n.operation == Operation.MINUS:
-            if not isinstance(n, NodeNumber):
-                self.__replace_subtract(n.right)
+            if isinstance(n.right, NodeNumber):
+                return NodeNumber(-n.right.number)
+            if isinstance(n.right, NodeVariable):
+                return n
+            else:
+                return self.__replace_subtract(n.right)
         return n
 
     @staticmethod
