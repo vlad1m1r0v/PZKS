@@ -12,6 +12,12 @@ class TestOptimizer(unittest.TestCase):
         optimized = Optimizer.optimize(ast)
         self.assertEqual(optimized.get_height(), power)
 
+    def test_unary(self):
+        expression = "-(-(-sin(x)))"
+        ast = Parser.parse(expression)
+        optimized = Optimizer.optimize(ast)
+        self.assertEqual(optimized.get_height(), 2)
+
     def test_case_with_all_operators(self):
         expression = "sin(- 1 - 2 - 3 - 4 - a - b - c - d + x / y / w / z  + a_1 * a_2 * a_3 * a_4)"
         ast = Parser.parse(expression)
