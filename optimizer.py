@@ -1,7 +1,5 @@
 from nodes import *
 from enums import Operation
-from parser import Parser
-from printer import Printer
 
 
 class Optimizer:
