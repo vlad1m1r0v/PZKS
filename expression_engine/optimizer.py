@@ -45,12 +45,22 @@ class Optimizer:
             # can't get rid of minus sign in variables and functions, so we return them
             elif type(n.right) in [NodeVariable, NodeFunction]:
                 return n
-            # Example: -(-sin(x)) = sin(x)
+            # Example: -(-sin(x)) -> sin(x)
             elif isinstance(n.right, NodeUnary) and n.right.operation == Operation.MINUS:
                 return n.right.right
-            else:
-                # for binary node
-                return self.__replace_subtract(n.right)
+            # Example -(a <op> b) -> ...
+            elif isinstance(n.right, NodeBinary):
+                op = n.right.operation
+                # -(a <*,/> b) = -a / b
+                if n.right.operation in [Operation.MULTIPLY, Operation.DIVIDE]:
+                    left = NodeUnary(n.right.left, Operation.MINUS)
+                    right = n.right.right
+                    return self.__replace_subtract(NodeBinary(left, right, op))
+                else:
+                    # -(a <+,-> b) = -a + (-b)
+                    left = NodeUnary(n.right.left, Operation.MINUS)
+                    right = NodeUnary(n.right.right, Operation.MINUS)
+                    return self.__replace_subtract(NodeBinary(left, right, op))
         return n
 
     @staticmethod
