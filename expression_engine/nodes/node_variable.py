@@ -1,20 +1,24 @@
-from expression_engine.context import Context
+from expression_engine.types import Context
 from expression_engine.nodes import Node
 
 
 class NodeVariable(Node):
-    def __init__(self, variable_name: str):
-        self.__variable_name = variable_name
+    def __init__(self, name: str):
+        self.name = name
 
-    @property
-    def name(self) -> str:
-        return self.__variable_name
+    def get_name(self) -> str:
+        return self.name
 
-    def eval(self, ctx: Context = None):
-        return ctx.resolve_variable(self.__variable_name)
+    def has_children(self) -> bool:
+        return False
+
+    def get_children(self) -> list:
+        return []
+
+    def eval(self, ctx: Context) -> float:
+        if not ctx.get(self.name):
+            raise ValueError(f"Variable '{self.name}' not found")
+        return ctx.get(self.name)
 
     def get_height(self) -> int:
         return 0
-
-    def get_children(self) -> list:
-        pass

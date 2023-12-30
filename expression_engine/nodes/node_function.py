@@ -1,34 +1,27 @@
-from expression_engine.context import Context
 from expression_engine.nodes import Node
+from expression_engine.types import Context
 
 
 class NodeFunction(Node):
-    def __init__(self, name: str, arguments: list[Node]):
-        self.__name = name
-        self.__arguments = arguments
+    def __init__(self, name: str, args: list[Node]):
+        self.name = name
+        self.args = args
 
-    @property
-    def name(self) -> str:
-        return self.__name
+    def get_name(self) -> str:
+        return self.name
 
-    @property
-    def arguments(self):
-        return self.__arguments
-
-    @arguments.setter
-    def arguments(self, arguments: list[Node]):
-        self.__arguments = arguments
-
-    @property
     def has_children(self) -> bool:
         return True
 
     def eval(self, ctx: Context = None):
-        arg_vals = [arg.eval(ctx) for arg in self.__arguments]
-        return ctx.call_function(self.__name, arg_vals)
+        args_eval = [arg.eval(ctx) for arg in self.args]
+        if not ctx.get(self.name):
+            raise ValueError(f"Function '{self.name}' not found")
+        fn = ctx.get(self.name)
+        return fn(args_eval)
 
     def get_height(self) -> int:
-        return max(arg.get_height() for arg in self.__arguments) + 1
+        return max(arg.get_height() for arg in self.args) + 1
 
     def get_children(self) -> list:
-        return self.__arguments
+        return self.args

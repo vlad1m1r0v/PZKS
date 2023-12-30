@@ -1,9 +1,10 @@
-from enum import StrEnum, auto
+from enum import StrEnum
 
 
 class Operation(StrEnum):
-    ADD = auto()
-    MINUS = auto()
-    SUBTRACT = auto()
-    MULTIPLY = auto()
-    DIVIDE = auto()
+    ADD = '+'
+    MINUS = '-'
+    SUBTRACT = '-'
+    MULTIPLY = '*'
+    DIVIDE = '/'
+    POW = '^'
