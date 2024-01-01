@@ -43,6 +43,8 @@ class Validator:
         self.is_valid = True
         # open parentheses / closed parentheses
         self.balance = 0
+        # previous token
+        self.prev: Optional[MatchedToken] = None
         self.transition_to(ExpressionState())
 
     def inc(self):
@@ -64,6 +66,18 @@ class State(ABC):
     def handle(self) -> None:
         pass
 
+    @abstractmethod
+    def handle_start(self) -> None:
+        pass
+
+    @abstractmethod
+    def handle_middle(self) -> None:
+        pass
+
+    @abstractmethod
+    def handle_end(self) -> None:
+        pass
+
     def handle_error(self, msg: str):
         self.validator.is_valid = False
         print(msg)
@@ -73,84 +87,150 @@ class State(ABC):
 
 
 class ExpressionState(State):
-    def __init__(self):
-        # previous token
-        self._prev: Optional[MatchedToken] = None
+    def handle_start(self) -> None:
+        if self.validator.prev is not None:
+            return
 
-    def handle(self) -> None:
-        # the beginning of expression
-        try:
+        t = self.next()
+        # skip whitespace
+        if t.type == Token.SPACE:
+            self.handle_start()
+
+        if t.type not in allowed_start:
+            self.handle_error(f"Error at {t.matched_at}: "
+                              f"expression cannot begin with a token of type "
+                              f"{t.type.name.lower()}")
+            # skip until we find good token
+            self.handle_start()
+
+        if t.type == Token.OPEN_PARENS:
+            self.validator.inc()
+
+        self.validator.prev = t
+
+    def handle_middle(self) -> None:
+        while True:
             t = self.next()
             # ignore space tokens
             if t.type == Token.SPACE:
-                return
-
-            if t.type not in allowed_start:
-                self.handle_error(f"Error at {t.matched_at}: "
-                                  f"expression cannot begin with a token of type {t.type.name.lower()}")
-
+                continue
+            # if we get comma outside function expression
+            if t.type == Token.COMMA:
+                self.handle_error(f"Error at {t.matched_at}: {t.type.name.lower()} "
+                                  f"outside function expression")
+                continue
+            # if we get unknown symbol
+            if t.type == Token.UNKNOWN:
+                self.handle_error(f"Error at {t.matched_at}: token of type {t.type.name.lower()} "
+                                  f"is given ({t.value})")
+                continue
+            # if we get open parenthesis
             if t.type == Token.OPEN_PARENS:
-                self.validator.inc()
+                # if we have `ident(...`
+                if self.validator.prev.type == Token.IDENTIFIER:
+                    self.validator.transition_to(FunctionState())
+                    return
+                else:
+                    self.validator.inc()
+            # if we get close parenthesis
+            if t.type == Token.CLOSE_PARENS:
+                self.validator.dec()
+                # if we have too many closing parentheses
+                if self.validator.balance < 0:
+                    self.handle_error(f"Error at {t.matched_at}: too many closing parentheses "
+                                      f"({abs(self.validator.balance)})")
 
-            self._prev = t
-        except StopIteration as _:
-            print("End of execution")
+            if self.validator.prev.type not in allowed_before_token[t.type]:
+                self.handle_error(f"Error at {t.matched_at}: "
+                                  f"token of type {t.type.name.lower()} cannot "
+                                  f"go after token of type {self.validator.prev.type.name.lower()}")
+            # before going to next token assign current token to previous token property
+            self.validator.prev = t
+
+    def handle_end(self) -> None:
+        if self.validator.balance > 0:
+            self.handle_error(f"Error at {self.validator.prev.matched_at}: too many open parentheses "
+                              f"({abs(self.validator.balance)})")
             return
-        # from the middle to the end
+
+        if self.validator.prev.type not in allowed_end:
+            self.handle_error(f"Error at {self.validator.prev.matched_at}: "
+                              f"expression cannot end with a token of type "
+                              f"{self.validator.prev.type.name.lower()}")
+
+    def handle(self) -> None:
+        try:
+            self.handle_start()
+        except StopIteration as _:
+            self.handle_error("Error at 0: invalid expression")
+            return
+
         try:
             while True:
-                t = self.next()
-                # ignore space tokens
-                if t.type == Token.SPACE:
-                    continue
-                # if we get comma outside function expression
-                if t.type == Token.COMMA:
-                    self.handle_error(f"Error at {t.matched_at}: {t.type.name.lower()} "
-                                      f"outside function expression")
-                    continue
-                # if we get unknown symbol
-                if t.type == Token.UNKNOWN:
-                    self.handle_error(f"Error at {t.matched_at}: token of type {t.type.name.lower()} "
-                                      f"is given ({t.value})")
-                    continue
-                # if we get open parenthesis
-                if t.type == Token.OPEN_PARENS:
-                    self.validator.inc()
-                    # if we have `identifier ( ...`
-                    if self._prev.type == Token.IDENTIFIER:
-                        self.validator.transition_to(FunctionState())
-                        return
-                # if we get close parenthesis
-                if t.type == Token.CLOSE_PARENS:
-                    self.validator.dec()
-                    # if we have too many closing parentheses
-                    if self.validator.balance < 0:
-                        self.handle_error(f"Error at {t.matched_at}: too many closing parentheses "
-                                          f"({abs(self.validator.balance)})")
-
-                if self._prev.type not in allowed_before_token[t.type]:
-                    self.handle_error(f"Error at {t.matched_at}: "
-                                      f"token of type {t.type.name.lower()} cannot "
-                                      f"go after token of type {self._prev.type.name.lower()}")
-                # before going to next token assign current token to previous token property
-                self._prev = t
-        # check the end of expression
+                self.handle_middle()
         except StopIteration as _:
-            if self.validator.balance > 0:
-                self.handle_error(f"Error at {t.matched_at}: too many open parentheses "
-                                  f"({abs(self.validator.balance)})")
-                return
-
-            if self._prev.type not in allowed_end:
-                self.handle_error(f"Error at {t.matched_at}: "
-                                  f"expression cannot end with a token of type {t.type.name.lower()}")
-            return
+            self.handle_end()
 
 
 class FunctionState(State):
+    def handle_start(self) -> None:
+        t = self.next()
+        # ignore space tokens
+        if t.type == Token.SPACE:
+            self.handle()
+
+        if t.type not in allowed_start:
+            # if we get close parens at the beginning of function
+            self.handle_error(f"Error at {t.matched_at}: "
+                              f"function cannot begin with a token of type {t.type.name.lower()}")
+
+        if t.type == Token.OPEN_PARENS:
+            self.validator.inc()
+
+        self.validator.prev = t
+
+    def handle_middle(self) -> None:
+        while True:
+            t = self.next()
+            # ignore space tokens
+            if t.type == Token.SPACE:
+                continue
+            # if we get unknown symbol
+            if t.type == Token.UNKNOWN:
+                self.handle_error(f"Error at {t.matched_at}: token of type {t.type.name.lower()} "
+                                  f"is given ({t.value})")
+                continue
+            # if we get open parenthesis
+            if t.type == Token.OPEN_PARENS:
+                self.inc()
+            # if we get close parenthesis
+            if t.type == Token.CLOSE_PARENS:
+                self.dec()
+                # go to expression state after equalizing parentheses
+                if self.balance == 0:
+                    self.validator.transition_to(ExpressionState())
+                    return
+
+            if self.validator.prev.type not in allowed_before_token_fn[t.type]:
+                self.handle_error(f"Error at {t.matched_at}: "
+                                  f"token of type {t.type.name.lower()} cannot "
+                                  f"go after token of type {self.validator.prev.type.name.lower()}")
+            # before going to next token assign current token to previous token property
+            self.validator.prev = t
+
+    def handle_end(self) -> None:
+        if self.validator.balance > 0:
+            self.handle_error(f"Error at {self.validator.prev.matched_at}:"
+                              f" too many open parentheses {abs(self.validator.balance)})")
+            return
+
+        if self.validator.prev.type not in allowed_end:
+            self.handle_error(f"Error at {self.validator.prev.matched_at}: "
+                              f"function cannot end with a token of type "
+                              f"{self.validator.type.name.lower()}")
+        return
+
     def __init__(self):
-        # previous token
-        self._prev: Optional[MatchedToken] = None
         # the first open parenthesis was read by ExpressionState
         self.balance = 1
 
@@ -161,64 +241,13 @@ class FunctionState(State):
         self.balance -= 1
 
     def handle(self) -> None:
-        # the beginning of function
         try:
-            t = self.next()
-            if t.type not in allowed_start:
-                # ignore space tokens
-                if t.type == Token.SPACE:
-                    return
-                # if we get open parens at the beginning of function
-                if t.type == Token.CLOSE_PARENS:
-                    self.handle_error(f"Error at {t.matched_at}: function with empty block given")
-                else:
-                    self.handle_error(f"Error at {t.matched_at}: "
-                                      f"function cannot begin with a token of type {t.type.name.lower()}")
-
-            if t.type == Token.OPEN_PARENS:
-                self.validator.inc()
-
-            self._prev = t
+            self.handle_start()
         except StopIteration as _:
-            self.handle_error("Corresponding close parenthesis not found")
+            self.handle_error(f"Error at {self.validator.prev.matched_at}: invalid function")
             return
-        # from the middle to the end
+
         try:
-            while True:
-                t = self.next()
-                # ignore space tokens
-                if t.type == Token.SPACE:
-                    continue
-                # if we get unknown symbol
-                if t.type == Token.UNKNOWN:
-                    self.handle_error(f"Error at {t.matched_at}: token of type {t.type.name.lower()} "
-                                      f"is given ({t.value})")
-                    continue
-                # if we get open parenthesis
-                if t.type == Token.OPEN_PARENS:
-                    self.inc()
-                # if we get close parenthesis
-                if t.type == Token.CLOSE_PARENS:
-                    self.dec()
-                    # go to expression state after equalizing parentheses
-                    if self.balance == 0:
-                        self.validator.transition_to(ExpressionState())
-                        return
-
-                if self._prev.type not in allowed_before_token_fn[t.type]:
-                    self.handle_error(f"Error at {t.matched_at}: "
-                                      f"token of type {t.type.name.lower()} cannot "
-                                      f"go after token of type {self._prev.type.name.lower()}")
-                # before going to next token assign current token to previous token property
-                self._prev = t
-        # check the end of expression
+            self.handle_middle()
         except StopIteration as _:
-            if self.validator.balance > 0:
-                self.handle_error(f"Error at {t.matched_at}: too many open parentheses "
-                                  f"({abs(self.validator.balance)})")
-                return
-
-            if self._prev.type not in allowed_end:
-                self.handle_error(f"Error at {t.matched_at}: "
-                                  f"function cannot end with a token of type {t.type.name.lower()}")
-            return
+            self.handle_end()
