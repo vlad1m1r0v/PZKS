@@ -8,9 +8,9 @@ operations = [Token.ADD, Token.SUBTRACT, Token.MULTIPLY, Token.DIVIDE, Token.POW
 
 value = [Token.IDENTIFIER, Token.NUMBER]
 
-allowed_start = [Token.OPEN_PARENS, *value, Token.SUBTRACT]
+allowed_start = [Token.SPACE, Token.OPEN_PARENS, *value, Token.SUBTRACT]
 
-allowed_end = [Token.CLOSE_PARENS, *value]
+allowed_end = [Token.SPACE, Token.CLOSE_PARENS, *value]
 
 allowed_before_operations = [Token.CLOSE_PARENS, *value]
 
@@ -94,14 +94,14 @@ class ExpressionState(State):
         t = self.next()
         # skip whitespace
         if t.type == Token.SPACE:
-            self.handle_start()
+            return self.handle_start()
 
         if t.type not in allowed_start:
             self.handle_error(f"Error at {t.matched_at}: "
                               f"expression cannot begin with a token of type "
                               f"{t.type.name.lower()}")
             # skip until we find good token
-            self.handle_start()
+            return self.handle_start()
 
         if t.type == Token.OPEN_PARENS:
             self.validator.inc()
@@ -128,8 +128,7 @@ class ExpressionState(State):
             if t.type == Token.OPEN_PARENS:
                 # if we have `ident(...`
                 if self.validator.prev.type == Token.IDENTIFIER:
-                    self.validator.transition_to(FunctionState())
-                    return
+                    return self.validator.transition_to(FunctionState())
                 else:
                     self.validator.inc()
             # if we get close parenthesis
@@ -177,12 +176,13 @@ class FunctionState(State):
         t = self.next()
         # ignore space tokens
         if t.type == Token.SPACE:
-            self.handle()
+            return self.handle_start()
 
         if t.type not in allowed_start:
-            # if we get close parens at the beginning of function
             self.handle_error(f"Error at {t.matched_at}: "
                               f"function cannot begin with a token of type {t.type.name.lower()}")
+            # skip until we find nearest goog token
+            return self.handle_start()
 
         if t.type == Token.OPEN_PARENS:
             self.validator.inc()
@@ -208,8 +208,7 @@ class FunctionState(State):
                 self.dec()
                 # go to expression state after equalizing parentheses
                 if self.balance == 0:
-                    self.validator.transition_to(ExpressionState())
-                    return
+                    return self.validator.transition_to(ExpressionState())
 
             if self.validator.prev.type not in allowed_before_token_fn[t.type]:
                 self.handle_error(f"Error at {t.matched_at}: "
@@ -228,7 +227,6 @@ class FunctionState(State):
             self.handle_error(f"Error at {self.validator.prev.matched_at}: "
                               f"function cannot end with a token of type "
                               f"{self.validator.type.name.lower()}")
-        return
 
     def __init__(self):
         # the first open parenthesis was read by ExpressionState
