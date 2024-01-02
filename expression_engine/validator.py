@@ -172,6 +172,20 @@ class ExpressionState(State):
 
 
 class FunctionState(State):
+    def __init__(self):
+        # the first open parenthesis was read by ExpressionState
+        self.balance = 1
+        self.idents = 1
+
+    def inc(self):
+        self.balance += 1
+
+    def dec(self):
+        self.balance -= 1
+
+    def ident_inc(self):
+        self.idents += 1
+
     def handle_start(self) -> None:
         t = self.next()
         # ignore space tokens
@@ -186,6 +200,9 @@ class FunctionState(State):
 
         if t.type == Token.OPEN_PARENS:
             self.validator.inc()
+
+        if t.type == Token.IDENTIFIER:
+            self.ident_inc()
 
         self.validator.prev = t
 
@@ -210,6 +227,14 @@ class FunctionState(State):
                 if self.balance == 0:
                     return self.validator.transition_to(ExpressionState())
 
+            if t.type == Token.IDENTIFIER:
+                self.ident_inc()
+            # check if comma is outside nested function
+            if t.type == Token.COMMA:
+                if self.idents < self.balance:
+                    self.handle_error(f"Error at {t.matched_at}: comma is not inside function")
+                    continue
+
             if self.validator.prev.type not in allowed_before_token_fn[t.type]:
                 self.handle_error(f"Error at {t.matched_at}: "
                                   f"token of type {t.type.name.lower()} cannot "
@@ -227,16 +252,6 @@ class FunctionState(State):
             self.handle_error(f"Error at {self.validator.prev.matched_at}: "
                               f"function cannot end with a token of type "
                               f"{self.validator.type.name.lower()}")
-
-    def __init__(self):
-        # the first open parenthesis was read by ExpressionState
-        self.balance = 1
-
-    def inc(self):
-        self.balance += 1
-
-    def dec(self):
-        self.balance -= 1
 
     def handle(self) -> None:
         try:
