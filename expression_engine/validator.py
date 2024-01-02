@@ -251,7 +251,7 @@ class FunctionState(State):
         if self.validator.prev.type not in allowed_end:
             self.handle_error(f"Error at {self.validator.prev.matched_at}: "
                               f"function cannot end with a token of type "
-                              f"{self.validator.type.name.lower()}")
+                              f"{self.validator.prev.type.name.lower()}")
 
     def handle(self) -> None:
         try:
