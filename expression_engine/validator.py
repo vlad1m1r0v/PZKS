@@ -148,7 +148,7 @@ class ExpressionState(State):
 
     def handle_end(self) -> None:
         if self.validator.balance > 0:
-            self.handle_error(f"Error at {self.validator.prev.matched_at}: too many open parentheses "
+            self.handle_error(f"Error at {self.validator.prev.matched_at}: too many open parentheses in expression "
                               f"({abs(self.validator.balance)})")
             return
 
@@ -245,7 +245,7 @@ class FunctionState(State):
     def handle_end(self) -> None:
         if self.balance > 0:
             self.handle_error(f"Error at {self.validator.prev.matched_at}:"
-                              f" too many open parentheses {abs(self.balance)}")
+                              f" too many open parentheses in function ({abs(self.balance)})")
             return
 
         if self.validator.prev.type not in allowed_end:
