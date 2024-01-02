@@ -29,6 +29,7 @@ allowed_before_token = {
 allowed_before_token_fn = {
     **allowed_before_token,
     Token.COMMA: [*value, Token.CLOSE_PARENS],
+    Token.SUBTRACT: [*allowed_before_token[Token.SUBTRACT], Token.COMMA],
     Token.OPEN_PARENS: [*allowed_before_token[Token.OPEN_PARENS], Token.COMMA],
     Token.IDENTIFIER: [*allowed_before_token[Token.IDENTIFIER], Token.COMMA],
     Token.NUMBER: [*allowed_before_token[Token.NUMBER], Token.COMMA],
