@@ -243,9 +243,9 @@ class FunctionState(State):
             self.validator.prev = t
 
     def handle_end(self) -> None:
-        if self.validator.balance > 0:
+        if self.balance > 0:
             self.handle_error(f"Error at {self.validator.prev.matched_at}:"
-                              f" too many open parentheses {abs(self.validator.balance)})")
+                              f" too many open parentheses {abs(self.balance)}")
             return
 
         if self.validator.prev.type not in allowed_end:
