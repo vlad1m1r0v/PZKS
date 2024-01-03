@@ -179,15 +179,6 @@ class FunctionState(State):
                 self.handle_err(f"Error at {cur.matched_at}: {token_name(cur)} token with value {cur.value} found")
                 self.inc_pos()
                 continue
-            if cur.type == Token.CLOSE_PARENS:
-                if self.open_parens:
-                    self.inc_pos()
-                    self.validator.prev_token = cur
-                    return self.validator.quit()
-                else:
-                    self.handle_err(f"Error at {cur.matched_at}: redundant {token_name(cur)}")
-                    self.inc_pos()
-                    continue
             prev = self.validator.prev_token
             if prev:
                 if prev.type not in allowed_before_token_fn[cur.type]:
@@ -201,6 +192,15 @@ class FunctionState(State):
                         return self.validator.transition_to(FunctionState(open_parens=cur))
                     else:
                         return self.validator.transition_to(ExpressionState(open_parens=cur))
+            if cur.type == Token.CLOSE_PARENS:
+                if self.open_parens:
+                    self.inc_pos()
+                    self.validator.prev_token = cur
+                    return self.validator.quit()
+                else:
+                    self.handle_err(f"Error at {cur.matched_at}: redundant {token_name(cur)}")
+                    self.inc_pos()
+                    continue
             if self.validator.is_end:
                 if cur.type not in allowed_end:
                     self.handle_err(f"Error at {cur.matched_at}: expression cannot end with {token_name(cur)}")
