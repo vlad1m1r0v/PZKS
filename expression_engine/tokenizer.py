@@ -12,8 +12,8 @@ class Tokenizer:
                 match = t.value.match(expr, pos)
                 if match:
                     value = match.group()
-                    token = MatchedToken(type=t, matched_at=pos, value=value)
                     pos += len(value)
+                    token = MatchedToken(type=t, matched_at=pos, value=value)
                     tokens.append(token)
                     break
         return tokens

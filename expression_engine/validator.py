@@ -106,6 +106,10 @@ class ExpressionState(State):
         self.open_parens = open_parens
 
     def handle(self):
+        # if no tokens provided or space given
+        if not len(self.validator.tokens) or (len(self.validator.tokens) == 1 and self.validator.cur_token):
+            self.handle_err(f"Error at 0: empty expression provided")
+            return
         while self.validator.pos < len(self.validator.tokens):
             cur = self.validator.cur_token
             if cur.type == Token.SPACE:
