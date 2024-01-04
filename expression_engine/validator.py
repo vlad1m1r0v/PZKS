@@ -65,23 +65,26 @@ class Validator:
     def cur_token(self) -> MatchedToken:
         return self.tokens[self.pos]
 
-    def validate(self):
-        self.transition_to(ExpressionState())
+    @staticmethod
+    def validate(tokens: list[MatchedToken]) -> bool:
+        validator = Validator(tokens)
+        validator.transition_to(ExpressionState())
+        return validator.is_valid
 
-    def __set_state(self, state):
+    def _set_state(self, state):
         self._state = state
         self._state.validator = self
 
     def transition_to(self, state):
         if self._state:
             self._states.append(self._state)
-        self.__set_state(state)
+        self._set_state(state)
         self._state.handle()
 
     def quit(self):
         if len(self._states):
             prev = self._states.pop()
-            self.__set_state(prev)
+            self._set_state(prev)
             self._state.handle()
         else:
             return
