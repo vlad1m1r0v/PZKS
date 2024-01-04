@@ -115,6 +115,7 @@ class ExpressionState(State):
             return
         while self.validator.pos < len(self.validator.tokens):
             cur = self.validator.cur_token
+            prev = self.validator.prev_token
             if cur.type == Token.SPACE:
                 self.inc_pos()
                 continue
@@ -132,6 +133,10 @@ class ExpressionState(State):
                 self.inc_pos()
                 continue
             if cur.type == Token.CLOSE_PARENS:
+                if prev.type == Token.OPEN_PARENS:
+                    self.handle_err(f"Error at {cur.matched_at}: empty nested expression")
+                    self.inc_pos()
+                    continue
                 if self.open_parens:
                     self.inc_pos()
                     self.validator.prev_token = cur
@@ -140,7 +145,6 @@ class ExpressionState(State):
                     self.handle_err(f"Error at {cur.matched_at}: redundant {token_name(cur)}")
                     self.inc_pos()
                     continue
-            prev = self.validator.prev_token
             if prev:
                 if prev.type not in allowed_before_token[cur.type]:
                     self.handle_err(f"Error at {cur.matched_at}: {token_name(cur)} cannot go after {token_name(prev)}")
@@ -174,6 +178,7 @@ class FunctionState(State):
     def handle(self):
         while self.validator.pos < len(self.validator.tokens):
             cur = self.validator.cur_token
+            prev = self.validator.prev_token
             if cur.type == Token.SPACE:
                 self.inc_pos()
                 continue
@@ -186,7 +191,6 @@ class FunctionState(State):
                 self.handle_err(f"Error at {cur.matched_at}: {token_name(cur)} token with value {cur.value} found")
                 self.inc_pos()
                 continue
-            prev = self.validator.prev_token
             if prev:
                 if prev.type not in allowed_before_token_fn[cur.type]:
                     self.handle_err(f"Error at {cur.matched_at}: {token_name(cur)} cannot go after {token_name(prev)}")
