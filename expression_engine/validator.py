@@ -133,7 +133,7 @@ class ExpressionState(State):
                 self.inc_pos()
                 continue
             if cur.type == Token.CLOSE_PARENS:
-                if prev.type == Token.OPEN_PARENS:
+                if prev and prev.type == Token.OPEN_PARENS:
                     self.handle_err(f"Error at {cur.matched_at}: empty nested expression")
                     self.inc_pos()
                     continue
