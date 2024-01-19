@@ -1,7 +1,7 @@
-from enum import StrEnum
+from enum import Enum
 
 
-class Operation(StrEnum):
+class Operation(Enum):
     ADD = '+'
     MINUS = '-'
     SUBTRACT = '-'

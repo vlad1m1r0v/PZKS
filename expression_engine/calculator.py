@@ -15,6 +15,8 @@ class Calculator:
                 return left * right
             case Operation.DIVIDE:
                 return left / right
+            case Operation.POW:
+                return left ** right
             case _:
                 raise ValueError(f"Invalid operation: {operation.value}")
 

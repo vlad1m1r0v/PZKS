@@ -114,7 +114,7 @@ class State:
     def complain(self, err: str):
         print(err)
         self._validator.inc_pos()
-        self._validator.valid = False
+        self._validator._is_valid = False
 
     def handle(self):
         if self._validator.is_empty:

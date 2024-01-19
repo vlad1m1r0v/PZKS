@@ -12,7 +12,7 @@ class NodeBinary(Node):
 
     @property
     def name(self) -> str:
-        return self._op.value()
+        return self._op.value
 
     @property
     def children(self) -> list[Node]:
