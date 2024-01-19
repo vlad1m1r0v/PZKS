@@ -184,6 +184,10 @@ class State:
                               f"of type {token_name(cur)} and value {cur.value}")
                 return
 
+            if not self._open_paren and cur.type == Token.CLOSE_PARENS:
+                self.complain(f"Error at {cur.matched_at}: redundant {token_name(cur)}")
+                return
+
             if self._open_paren and cur.type != Token.CLOSE_PARENS:
                 self.complain(f"Error at {cur.matched_at}: "
                               f"missing close parens for parens from {self._open_paren.matched_at}")
