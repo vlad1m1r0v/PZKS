@@ -4,19 +4,19 @@ from expression_engine.nodes import Node
 
 class NodeNumber(Node):
     def __init__(self, num: float):
-        self.num = num
+        self._num = num
 
-    def get_name(self) -> str:
-        return str(self.num)
+    @property
+    def name(self) -> str:
+        return str(self._num)
 
-    def has_children(self) -> bool:
-        return False
-
-    def get_children(self) -> list:
+    @property
+    def children(self) -> list[Node]:
         return []
 
-    def eval(self, ctx: Context) -> float:
-        return self.num
-
-    def get_height(self) -> int:
+    @property
+    def height(self) -> int:
         return 0
+
+    def eval(self, ctx: Context) -> float:
+        return self._num

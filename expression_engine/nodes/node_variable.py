@@ -4,21 +4,22 @@ from expression_engine.nodes import Node
 
 class NodeVariable(Node):
     def __init__(self, name: str):
-        self.name = name
+        self._name = name
 
-    def get_name(self) -> str:
-        return self.name
+    @property
+    def name(self) -> str:
+        return self._name
 
-    def has_children(self) -> bool:
-        return False
-
-    def get_children(self) -> list:
+    @property
+    def children(self) -> list[Node]:
         return []
 
-    def eval(self, ctx: Context) -> float:
-        if not ctx.get(self.name):
-            raise ValueError(f"Variable '{self.name}' not found")
-        return ctx.get(self.name)
-
-    def get_height(self) -> int:
+    @property
+    def height(self) -> int:
         return 0
+
+    def eval(self, ctx: Context) -> float:
+        try:
+            return ctx.get(self.name)
+        except KeyError:
+            raise KeyError(f"Variable '{self.name}' not found")

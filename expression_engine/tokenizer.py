@@ -13,7 +13,8 @@ class Tokenizer:
                 if match:
                     value = match.group()
                     pos += len(value)
-                    token = MatchedToken(type=t, matched_at=pos, value=value)
-                    tokens.append(token)
+                    if t != Token.SPACE:
+                        token = MatchedToken(type=t, matched_at=pos, value=value)
+                        tokens.append(token)
                     break
         return tokens

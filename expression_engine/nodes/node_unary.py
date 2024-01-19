@@ -5,23 +5,24 @@ from expression_engine.nodes import Node
 
 
 class NodeUnary(Node):
+
     def __init__(self, child: Node, op: Operation):
-        self.child = child
-        self.op = op
+        self._child = child
+        self._op = op
 
-    def get_name(self) -> str:
-        return self.op.value()
+    @property
+    def name(self) -> str:
+        return self._op.value()
 
-    def has_children(self) -> bool:
-        return True
+    @property
+    def children(self) -> list[Node]:
+        return [self._child]
 
-    def get_children(self) -> list:
-        return [self.child]
+    @property
+    def height(self) -> int:
+        return self._child.height + 1
 
     def eval(self, ctx: Context) -> float:
-        child = self.child.eval(ctx)
-        result = Calculator.execute_unary(self.op, child)
+        value = self._child.eval(ctx)
+        result = Calculator.execute_unary(self._op, value)
         return result
-
-    def get_height(self) -> int:
-        return self.child.get_height() + 1

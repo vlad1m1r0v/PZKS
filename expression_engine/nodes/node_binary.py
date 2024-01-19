@@ -6,24 +6,24 @@ from expression_engine.types import Context
 
 class NodeBinary(Node):
     def __init__(self, left: Node, right: Node, op: Operation):
-        self.left = left
-        self.right = right
-        self.op = op
+        self._left = left
+        self._right = right
+        self._op = op
 
-    def get_name(self) -> str:
-        return self.op.value()
+    @property
+    def name(self) -> str:
+        return self._op.value()
 
-    def has_children(self) -> bool:
-        return True
+    @property
+    def children(self) -> list[Node]:
+        return [self._left, self._right]
 
-    def get_children(self) -> list:
-        return [self.left, self.right]
+    @property
+    def height(self) -> int:
+        return max(self._left.height, self._right.height) + 1
 
     def eval(self, ctx: Context):
-        left = self.left.eval(ctx)
-        right = self.right.eval(ctx)
-        result = Calculator.execute_binary(self.op, left, right)
+        left = self._left.eval(ctx)
+        right = self._right.eval(ctx)
+        result = Calculator.execute_binary(self._op, left, right)
         return result
-
-    def get_height(self) -> int:
-        return max(self.left.get_height(), self.right.get_height()) + 1

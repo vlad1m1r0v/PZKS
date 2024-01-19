@@ -4,22 +4,21 @@ from expression_engine.types import Context
 
 
 class Node(ABC):
+    @property
     @abstractmethod
-    def get_name(self) -> str:
-        pass
+    def name(self) -> str:
+        ...
 
+    @property
     @abstractmethod
-    def has_children(self) -> bool:
-        pass
+    def children(self) -> list["Node"]:
+        ...
 
+    @property
     @abstractmethod
-    def get_children(self) -> list:
-        pass
+    def height(self) -> int:
+        ...
 
     @abstractmethod
     def eval(self, ctx: Context) -> float:
-        pass
-
-    @abstractmethod
-    def get_height(self) -> int:
-        pass
+        ...
