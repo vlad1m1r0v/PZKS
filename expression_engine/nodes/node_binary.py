@@ -27,3 +27,8 @@ class NodeBinary(Node):
         right = self.right.eval(ctx)
         result = Calculator.execute_binary(self.op, left, right)
         return result
+
+    def equals(self, node: Node) -> bool:
+        if isinstance(node, NodeBinary) and self.op == node.op:
+            return (self.left.equals(node.left) and self.right.equals(node.right)
+                    or self.left.equals(node.right) and self.right.equals(node.left))

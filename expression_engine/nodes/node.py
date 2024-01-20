@@ -22,3 +22,7 @@ class Node(ABC):
     @abstractmethod
     def eval(self, ctx: Context) -> float:
         ...
+
+    @abstractmethod
+    def equals(self, node: "Node") -> bool:
+        ...

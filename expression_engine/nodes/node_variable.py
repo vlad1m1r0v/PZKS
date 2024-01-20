@@ -23,3 +23,8 @@ class NodeVariable(Node):
             return ctx.get(self.name)
         except KeyError:
             raise KeyError(f"Variable '{self.name}' not found")
+
+    def equals(self, node: Node) -> bool:
+        if isinstance(node, NodeVariable):
+            return self.name == node.name
+        return False

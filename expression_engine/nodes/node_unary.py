@@ -26,3 +26,10 @@ class NodeUnary(Node):
         value = self.child.eval(ctx)
         result = Calculator.execute_unary(self.op, value)
         return result
+
+    def equals(self, node: Node) -> bool:
+        if isinstance(node, NodeUnary):
+            children_equal = self.child.equals(node.child)
+            op_equal = self.op.value == node.op.value
+            return children_equal and op_equal
+        return False

@@ -10,5 +10,5 @@ if __name__ == "__main__":
         print("Abstract syntax tree")
         Printer.print(ast)
         optimized = Optimizer.optimize(ast)
-        print("Optimized abstract syntax tree")
+        print("\nOptimized abstract syntax tree")
         Printer.print(optimized)

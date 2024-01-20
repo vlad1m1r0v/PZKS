@@ -20,3 +20,8 @@ class NodeNumber(Node):
 
     def eval(self, ctx: Context) -> float:
         return self.num
+
+    def equals(self, node: Node) -> bool:
+        if isinstance(node, NodeNumber):
+            return self.num == node.num
+        return False

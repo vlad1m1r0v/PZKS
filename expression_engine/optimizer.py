@@ -42,8 +42,18 @@ class Optimizer:
 
     @staticmethod
     def _prepare(n: Node) -> Node:
-        # a * (b * c * d) -> a * b * c * d
         if isinstance(n, NodeBinary):
+            n.left = Optimizer._prepare(n.left)
+            n.right = Optimizer._prepare(n.right)
+            # a - a -> 0
+            if n.op == Operation.SUBTRACT and n.left.equals(n.right):
+                return NodeNumber(0.0)
+            # a / a -> 1
+            if n.op == Operation.DIVIDE and n.left.equals(n.right):
+                return NodeNumber(1.0)
+            # a * (b * c * d) -> a * b * c * d
+            # or
+            # a + (b + c + d) -> a + b + c + d
             if (not isinstance(n.left, NodeBinary)
                     and isinstance(n.right, NodeBinary)
                     and n.op == n.right.op
@@ -52,6 +62,43 @@ class Optimizer:
                 right = n.right.left
                 n.right = right
                 n.left = left
+            # if we can pre-evaluate value
+            if isinstance(n.left, NodeNumber) and isinstance(n.right, NodeNumber):
+                return NodeNumber(n.eval({}))
+            # 0 * a -> 0
+            if (isinstance(n.left, NodeNumber)
+                    and n.op == Operation.MULTIPLY
+                    and n.left.num == 0.0):
+                return NodeNumber(0.0)
+            # a * 0 -> 0
+            if (isinstance(n.right, NodeNumber)
+                    and n.op == Operation.MULTIPLY
+                    and n.right.num == 0.0):
+                return NodeNumber(0.0)
+            # 1 * a -> а
+            if (isinstance(n.left, NodeNumber)
+                    and n.op == Operation.MULTIPLY
+                    and n.left.num == 1.0):
+                return n.right
+            # a * 1 -> 1
+            if (isinstance(n.right, NodeNumber)
+                    and n.op == Operation.MULTIPLY
+                    and n.right.num == 1.0):
+                return n.left
+
+        if isinstance(n, NodeFunction):
+            n.args = [Optimizer._prepare(arg) for arg in n.args]
+            return n
+
+        if isinstance(n, NodeUnary):
+            n.child = Optimizer._prepare(n.child)
+            # -(-a) -> a
+            if isinstance(n.child, NodeUnary) and n.op == n.child.op:
+                return n.child.child
+
+            if isinstance(n.child, NodeNumber) and n.op == Operation.MINUS:
+                return NodeNumber(-n.child.num)
+
         return n
 
     @staticmethod

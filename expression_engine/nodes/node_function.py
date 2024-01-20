@@ -28,3 +28,8 @@ class NodeFunction(Node):
             return fn(values)
         except KeyError:
             raise KeyError(f"Function '{self.name}' not found")
+
+    def equals(self, node: Node) -> bool:
+        if isinstance(node, NodeFunction) and len(self.args) == len(node.args):
+            return all(arg1 == arg2 for arg1, arg2 in zip(self.args, node.args))
+        return False
