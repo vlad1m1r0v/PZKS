@@ -7,8 +7,8 @@ class Calculator:
         match operation:
             case Operation.ADD:
                 return left + right
-            case Operation.MINUS:
-                raise ArithmeticError("Minus is unary operation")
+            # case Operation.MINUS:
+            #     raise ArithmeticError("Minus is unary operation")
             case Operation.SUBTRACT:
                 return left - right
             case Operation.MULTIPLY:
