@@ -7,5 +7,8 @@ if __name__ == "__main__":
     validation_result = Validator.validate(tokens)
     if validation_result:
         ast = Parser.parse(tokens)
+        print("Abstract syntax tree")
         Printer.print(ast)
-        print(ast.eval({}))
+        optimized = Optimizer.optimize(ast)
+        print("Optimized abstract syntax tree")
+        Printer.print(optimized)

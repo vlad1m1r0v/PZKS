@@ -4,11 +4,11 @@ from expression_engine.nodes import Node
 
 class NodeNumber(Node):
     def __init__(self, num: float):
-        self._num = num
+        self.num = num
 
     @property
     def name(self) -> str:
-        return str(self._num)
+        return str(self.num)
 
     @property
     def children(self) -> list[Node]:
@@ -19,4 +19,4 @@ class NodeNumber(Node):
         return 0
 
     def eval(self, ctx: Context) -> float:
-        return self._num
+        return self.num

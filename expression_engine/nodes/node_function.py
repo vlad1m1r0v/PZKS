@@ -5,7 +5,7 @@ from expression_engine.types import Context
 class NodeFunction(Node):
     def __init__(self, name: str, args: list[Node]):
         self._name = name
-        self._args = args
+        self.args = args
 
     @property
     def name(self) -> str:
@@ -13,14 +13,14 @@ class NodeFunction(Node):
 
     @property
     def children(self) -> list[Node]:
-        return self._args
+        return self.args
 
     @property
     def height(self) -> int:
-        return max(arg.height for arg in self._args) + 1
+        return max(arg.height for arg in self.args) + 1
 
     def eval(self, ctx: Context = None):
-        values = tuple([arg.eval(ctx) for arg in self._args])
+        values = tuple([arg.eval(ctx) for arg in self.args])
         if not ctx.get(self.name):
             raise ValueError(f"Function '{self.name}' not found")
         try:
