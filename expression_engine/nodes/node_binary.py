@@ -30,5 +30,6 @@ class NodeBinary(Node):
 
     def equals(self, node: Node) -> bool:
         if isinstance(node, NodeBinary) and self.op == node.op:
+            # a <+,-> b
             return (self.left.equals(node.left) and self.right.equals(node.right)
                     or self.left.equals(node.right) and self.right.equals(node.left))
