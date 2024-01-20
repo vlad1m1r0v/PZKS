@@ -1,4 +1,3 @@
-from expression_engine import Printer
 from expression_engine.enums import Operation
 from expression_engine.nodes import *
 
