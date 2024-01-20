@@ -65,19 +65,14 @@ class Parser:
             lhs = NodeBinary(lhs, rhs, op)
 
     def _parse_exponentiation(self):
-        rhs = self._parse_unary()
-        while True:
-            op = None
+        lhs = self._parse_unary()
 
-            if self.cur.type == Token.POW:
-                op = Operation.POW
-
-            if op is None:
-                return rhs
-
+        while self.cur is not None and self.cur.type == Token.POW:
             self._next()
-            lhs = self._parse_unary()
-            rhs = NodeBinary(rhs, lhs, op)
+            rhs = self._parse_exponentiation()
+            lhs = NodeBinary(lhs, rhs, Operation.POW)
+
+        return lhs
 
     def _parse_unary(self):
         while True:

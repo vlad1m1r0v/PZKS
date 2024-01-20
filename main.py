@@ -8,3 +8,4 @@ if __name__ == "__main__":
     if validation_result:
         ast = Parser.parse(tokens)
         Printer.print(ast)
+        print(ast.eval({}))
