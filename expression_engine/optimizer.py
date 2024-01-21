@@ -51,6 +51,12 @@ class Optimizer:
             # a / a -> 1
             if n.op == Operation.DIVIDE and n.left.equals(n.right):
                 return NodeNumber(1.0)
+            # a +- 0
+            if n.op in [Operation.ADD, Operation.SUBTRACT] and n.right.equals(NodeNumber(0.0)):
+                return n.left
+            # a +- 0
+            if n.op in [Operation.ADD, Operation.SUBTRACT] and n.left.equals(NodeNumber(0.0)):
+                return n.right
             # a * (b * c * d) -> a * b * c * d
             # or
             # a + (b + c + d) -> a + b + c + d
@@ -83,6 +89,11 @@ class Optimizer:
             # a * 1 -> 1
             if (isinstance(n.right, NodeNumber)
                     and n.op == Operation.MULTIPLY
+                    and n.right.num == 1.0):
+                return n.left
+            # a / 1 -> a
+            if (isinstance(n.right, NodeNumber)
+                    and n.op == Operation.DIVIDE
                     and n.right.num == 1.0):
                 return n.left
 
