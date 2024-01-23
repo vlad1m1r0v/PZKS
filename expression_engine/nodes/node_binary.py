@@ -1,10 +1,8 @@
-from typing import Optional
-
 from expression_engine.calculator import Calculator
 from expression_engine.enums import Operation
 from expression_engine.nodes import Node
-from .node_unary import NodeUnary
 from expression_engine.types import Context
+from itertools import product
 
 
 class NodeBinary(Node):
@@ -25,29 +23,49 @@ class NodeBinary(Node):
     def height(self) -> int:
         return max(self.left.height, self.right.height) + 1
 
-    def _variations(self, n: Optional[Node] = None) -> list["NodeBinary"]:
-        if n is None:
-            n = self
-
-        if not isinstance(n, NodeBinary):
-            return [self]
-
-        if self.op in [Operation.ADD, Operation.MULTIPLY]:
-            return [self, NodeBinary(left=self.right, right=self.left, op=self.op)]
-
-        return [self]
-
     def eval(self, ctx: Context):
         left = self.left.eval(ctx)
         right = self.right.eval(ctx)
         result = Calculator.execute_binary(self.op, left, right)
         return result
 
+    def _variations(self, n: Node) -> list[Node]:
+        if not isinstance(n, NodeBinary):
+            return [n]
+
+        commutative_variations = []
+        # a <op> b <op> c = a <op> c <op> b = (a <op> c) <b>
+        # for op in <+,-,*,/>. ^ is right associated
+        if (isinstance(n.left, NodeBinary) and
+                n.left.op == n.op and
+                n.op != Operation.POW):
+            abc_to_acb = NodeBinary(NodeBinary(n.left.right, n.right, n.op), n.left.left, n.op)
+            commutative_variations = [NodeBinary(left=left, right=right, op=self.op) for
+                                      (left, right) in product(
+                    self._variations(abc_to_acb.left), self._variations(abc_to_acb.right))]
+
+        standard_variations = [NodeBinary(left=left, right=right, op=self.op) for
+                               (left, right) in product(self._variations(n.left), self._variations(n.right))]
+
+        swapped_variations = [NodeBinary(left=right, right=left, op=self.op) for
+                              (left, right) in product(self._variations(n.left), self._variations(n.right))]
+
+        if self.op in [Operation.ADD, Operation.MULTIPLY]:
+            return [*standard_variations, *swapped_variations, *commutative_variations]
+
+        return [*standard_variations, *commutative_variations]
+
     def equals(self, node: Node) -> bool:
-        if isinstance(node, NodeBinary) and self.op == node.op:
-            for variation in self._variations():
-                if (self.left.equals(variation.left) and
-                        self.right.equals(variation.right) and
-                        self.op == variation.op):
-                    return True
-                return False
+        if not isinstance(node, NodeBinary):
+            return False
+
+        for n in self._variations(node):
+            if not isinstance(n, NodeBinary):
+                continue
+
+            if (n.left.equals(self.left)
+                    and n.right.equals(self.right)
+                    and n.op == self.op):
+                return True
+
+        return False
