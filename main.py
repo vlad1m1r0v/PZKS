@@ -1,5 +1,4 @@
 from expression_engine import *
-from data_flow import *
 
 if __name__ == "__main__":
     expression = input()
@@ -12,8 +11,3 @@ if __name__ == "__main__":
         optimized = Optimizer.optimize(ast)
         print("\nOptimized abstract syntax tree")
         Printer.print(optimized)
-        system = System(ast=optimized)
-        print("\nInstructions")
-        system.print_tasks()
-        print("\n Calculation order")
-        system.print_grouped()

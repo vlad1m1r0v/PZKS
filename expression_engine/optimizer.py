@@ -51,12 +51,45 @@ class Optimizer:
             # a / a -> 1
             if n.op == Operation.DIVIDE and n.left.equals(n.right):
                 return NodeNumber(1.0)
-            # a +- 0
-            if n.op in [Operation.ADD, Operation.SUBTRACT] and n.right.equals(NodeNumber(0.0)):
-                return n.left
-            # a +- 0
+            # a <+,-> 0
             if n.op in [Operation.ADD, Operation.SUBTRACT] and n.left.equals(NodeNumber(0.0)):
                 return n.right
+            # 0 * a or a * 0 -> 0
+            if (n.op == Operation.MULTIPLY and
+                    (n.left.equals(NodeNumber(0.0)) or
+                     n.right.equals(NodeNumber(0.0)))):
+                return NodeNumber(0.0)
+            # 1 * a -> а
+            if n.op == Operation.MULTIPLY and n.left.equals(NodeNumber(1.0)):
+                return n.right
+            # a * 1 -> 1
+            if n.op == Operation.MULTIPLY and n.right.equals(NodeNumber(1.0)):
+                return n.left
+            # a / 1 -> a
+            if n.op == Operation.DIVIDE and n.right.equals(NodeNumber(1.0)):
+                return n.left
+            # 0 / a and 'a' is not zero
+            if (n.left.equals(NodeNumber(0.0))
+                    and n.op == Operation.DIVIDE
+                    and not n.right.equals(NodeNumber(0.0))):
+                return NodeNumber(0.0)
+            # get rid of unary nodes at the beginning
+            # -a + b -> b - a
+            if (n.op == Operation.ADD and
+                    isinstance(n.left, NodeUnary) and
+                    not isinstance(n.right, NodeUnary)):
+                return NodeBinary(n.right, n.left.child, Operation.SUBTRACT)
+            # -a - b or -a + (-b) -> -(a + b)
+            if (n.op == Operation.SUBTRACT and
+                    isinstance(n.left, NodeUnary) and
+                    not isinstance(n.right, NodeUnary)):
+                return NodeUnary(NodeBinary(n.right, n.left.child, Operation.ADD), Operation.MINUS)
+            if (n.op == Operation.ADD and
+                    isinstance(n.left, NodeUnary) and
+                    n.left.op == Operation.MINUS and
+                    isinstance(n.right, NodeUnary) and
+                    n.right.op == Operation.MINUS):
+                return NodeUnary(NodeBinary(n.right.child, n.left.child, Operation.ADD), Operation.MINUS)
             # a * (b * c * d) -> a * b * c * d
             # or
             # a + (b + c + d) -> a + b + c + d
@@ -71,31 +104,6 @@ class Optimizer:
             # if we can pre-evaluate value
             if isinstance(n.left, NodeNumber) and isinstance(n.right, NodeNumber):
                 return NodeNumber(n.eval({}))
-            # 0 * a -> 0
-            if (isinstance(n.left, NodeNumber)
-                    and n.op == Operation.MULTIPLY
-                    and n.left.num == 0.0):
-                return NodeNumber(0.0)
-            # a * 0 -> 0
-            if (isinstance(n.right, NodeNumber)
-                    and n.op == Operation.MULTIPLY
-                    and n.right.num == 0.0):
-                return NodeNumber(0.0)
-            # 1 * a -> а
-            if (isinstance(n.left, NodeNumber)
-                    and n.op == Operation.MULTIPLY
-                    and n.left.num == 1.0):
-                return n.right
-            # a * 1 -> 1
-            if (isinstance(n.right, NodeNumber)
-                    and n.op == Operation.MULTIPLY
-                    and n.right.num == 1.0):
-                return n.left
-            # a / 1 -> a
-            if (isinstance(n.right, NodeNumber)
-                    and n.op == Operation.DIVIDE
-                    and n.right.num == 1.0):
-                return n.left
 
         if isinstance(n, NodeFunction):
             n.args = [Optimizer._prepare(arg) for arg in n.args]
@@ -106,7 +114,7 @@ class Optimizer:
             # -(-a) -> a
             if isinstance(n.child, NodeUnary) and n.op == n.child.op:
                 return n.child.child
-
+            # NodeUnary(-, NodeNumber(n)) -> -n
             if isinstance(n.child, NodeNumber) and n.op == Operation.MINUS:
                 return NodeNumber(-n.child.num)
 
