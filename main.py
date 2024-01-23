@@ -1,4 +1,5 @@
 from expression_engine import *
+from model import InstructionBuilder,print_instructions_and_order
 
 if __name__ == "__main__":
     expression = input()
@@ -11,3 +12,5 @@ if __name__ == "__main__":
         optimized = Optimizer.optimize(ast)
         print("\nOptimized abstract syntax tree")
         Printer.print(optimized)
+        instructions = InstructionBuilder.collect_instructions(optimized)
+        print_instructions_and_order(instructions)

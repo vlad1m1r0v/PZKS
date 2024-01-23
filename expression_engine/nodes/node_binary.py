@@ -34,15 +34,18 @@ class NodeBinary(Node):
             return [n]
 
         commutative_variations = []
-        # a <op> b <op> c = a <op> c <op> b = (a <op> c) <b>
+        # (a <op> b) <op> c = (b <op> c) <op> a
         # for op in <+,-,*,/>. ^ is right associated
         if (isinstance(n.left, NodeBinary) and
                 n.left.op == n.op and
                 n.op != Operation.POW):
-            abc_to_acb = NodeBinary(NodeBinary(n.left.right, n.right, n.op), n.left.left, n.op)
-            commutative_variations = [NodeBinary(left=left, right=right, op=self.op) for
-                                      (left, right) in product(
-                    self._variations(abc_to_acb.left), self._variations(abc_to_acb.right))]
+            abc_to_bca = NodeBinary(NodeBinary(n.left.right, n.right, n.op), n.left.left, n.op)
+            commutative_variations += [NodeBinary(left=left, right=right, op=self.op) for
+                                       (left, right) in product(
+                    self._variations(abc_to_bca.left), self._variations(abc_to_bca.right))]
+            commutative_variations += [NodeBinary(left=left, right=right, op=self.op) for
+                                       (left, right) in product(
+                    self._variations(abc_to_bca.left), self._variations(abc_to_bca.right))]
 
         standard_variations = [NodeBinary(left=left, right=right, op=self.op) for
                                (left, right) in product(self._variations(n.left), self._variations(n.right))]
