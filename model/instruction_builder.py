@@ -7,6 +7,7 @@ from model.enums import Complexity
 from model.instruction import Instruction
 from itertools import chain
 
+
 class InstructionBuilder:
     def __init__(self, ast: Node):
         self._ast = ast
@@ -14,26 +15,26 @@ class InstructionBuilder:
 
     @staticmethod
     def _get_instruction_complexity(n: Node) -> int:
-        task_complexity = Complexity.ADD.value
+        instruction_complexity = Complexity.ADD.value
 
         if isinstance(n, NodeBinary):
             match n.op:
                 case Operation.SUBTRACT:
-                    task_complexity = Complexity.SUBTRACT.value
+                    instruction_complexity = Complexity.SUBTRACT.value
                 case Operation.MULTIPLY:
-                    task_complexity = Complexity.MULTIPLY.value
+                    instruction_complexity = Complexity.MULTIPLY.value
                 case Operation.DIVIDE:
-                    task_complexity = Complexity.DIVIDE.value
+                    instruction_complexity = Complexity.DIVIDE.value
                 case Operation.POW:
-                    task_complexity = Complexity.POW.value
+                    instruction_complexity = Complexity.POW.value
 
         if isinstance(n, NodeFunction):
-            task_complexity = Complexity.FUNCTION.value
+            instruction_complexity = Complexity.FUNCTION.value
 
         if isinstance(n, NodeUnary):
-            task_complexity = Complexity.FUNCTION.value
+            instruction_complexity = Complexity.UNARY.value
 
-        return task_complexity
+        return instruction_complexity
 
     def _collect_instructions(self, depth: int = 0, n: Optional[Node] = None) -> None:
         if not n:

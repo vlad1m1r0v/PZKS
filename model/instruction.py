@@ -8,3 +8,6 @@ class Instruction:
     depth: int
     complexity: int
     node: Node
+
+    def __str__(self):
+        return str(self.id)
