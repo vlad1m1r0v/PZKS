@@ -1,3 +1,5 @@
+from itertools import chain
+
 from model.enums import State
 from model.instruction import Instruction
 from model.memory import Memory
@@ -16,6 +18,10 @@ class Processor:
 
         self._layers = self._layer.collect_layers()
         print_header()
+
+    @property
+    def tick(self):
+        return self._tick
 
     def run(self, instructions: list[Instruction]) -> None:
         length = max(instruction.complexity for instruction in instructions)
@@ -42,8 +48,11 @@ class Processor:
 
         self._tick -= 1
 
-    def get_current_tick(self):
-        return self._tick
+
+def sequential_speed(instructions: list[list[Instruction]], num_layers: int = 5) -> int:
+    flatten = list(chain(*instructions))
+    speed = sum(instruction.complexity for instruction in flatten) * num_layers
+    return speed
 
 
 def print_header():

@@ -32,7 +32,7 @@ class NodeBinary(Node):
     def _variations(self, n: Node) -> list[Node]:
         if not isinstance(n, NodeBinary):
             return [n]
-
+        # 🩼
         commutative_variations = []
         # (a <op> b) <op> c = (b <op> c) <op> a
         # for op in <+,-,*,/>. ^ is right associated
