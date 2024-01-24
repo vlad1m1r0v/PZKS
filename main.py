@@ -17,11 +17,13 @@ if __name__ == "__main__":
 
         instructions = InstructionBuilder.collect_instructions(optimized)
         print_instructions_and_order(instructions)
-        processor = Processor()
+        # can be changed
+        layers_num = 5
+        processor = Processor(layers_num)
         for instruction_set in instructions:
             processor.run(instruction_set)
 
-        sequential = sequential_speed(instructions)
+        sequential = sequential_speed(instructions, layers_num)
         print(f"\nSequential speed: {sequential}")
 
         parallel = processor.tick

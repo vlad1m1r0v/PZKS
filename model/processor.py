@@ -7,7 +7,8 @@ from model.layers import *
 
 
 class Processor:
-    def __init__(self, layers_num: int = 5):
+    def __init__(self, layers_num):
+        self._layers_num = layers_num
         self._tick = 0
         self._memory = Memory()
 
@@ -17,7 +18,7 @@ class Processor:
         self._layer = InputLayer(self._memory, nested)
 
         self._layers = self._layer.collect_layers()
-        print_header()
+        print_header(layers_num)
 
     @property
     def tick(self):
@@ -32,7 +33,7 @@ class Processor:
 
         while not self._memory.is_empty():
             states = [str(nested) for nested in self._layers]
-            print_tick(self._tick, states)
+            print_tick(self._tick, states, self._layers_num)
 
             for nested in self._layers:
                 nested.tick()
@@ -49,20 +50,20 @@ class Processor:
         self._tick -= 1
 
 
-def sequential_speed(instructions: list[list[Instruction]], num_layers: int = 5) -> int:
+def sequential_speed(instructions: list[list[Instruction]], layers_num: int = 5) -> int:
     flatten = list(chain(*instructions))
-    speed = sum(instruction.complexity for instruction in flatten) * num_layers
+    speed = sum(instruction.complexity for instruction in flatten) * layers_num
     return speed
 
 
-def print_header():
+def print_header(layers_num: int) -> None:
     print("\nComputation process:")
     print("E - Empty, H - holding, W - writing, R - reading, C - computing\n")
-    print("{:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}".
-          format("Tick", "R", "L1", "L2", "L3", "L4", "L5", "W"))
+    print(("{:<10} {:<10}" + " {:<10}" * (layers_num + 1)).
+          format("Tick", "R", *(f"L{i}" for i in range(1, layers_num + 1)), "W"))
     print("-" * 80)
 
 
-def print_tick(tick: int, states: list[str]) -> None:
-    print("{:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}".
-          format(tick, states[0], states[1], states[2], states[3], states[4], states[5], states[6]))
+def print_tick(tick: int, states: list[str], layers_num: int) -> None:
+    print(("{:<10}" + " {:<10}" * (layers_num + 2)).
+          format(tick, states[0], *states))
