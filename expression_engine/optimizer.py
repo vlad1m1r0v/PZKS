@@ -90,14 +90,32 @@ class Optimizer:
                     isinstance(n.right, NodeUnary) and
                     n.right.op == Operation.MINUS):
                 return NodeUnary(NodeBinary(n.right.child, n.left.child, Operation.ADD), Operation.MINUS)
-            # a * (b * c * d) -> a * b * c * d
+            # a * (b * c) -> a * b * c
             # or
-            # a + (b + c + d) -> a + b + c + d
+            # a + (b + c) -> a + b + c
             if (not isinstance(n.left, NodeBinary)
                     and isinstance(n.right, NodeBinary)
                     and n.op == n.right.op
                     and n.op in [Operation.MULTIPLY, Operation.ADD]):
                 left = NodeBinary(n.left, n.right.right, n.op)
+                right = n.right.left
+                n.right = right
+                n.left = left
+            # a - (b + c) -> a - b - с
+            if (not isinstance(n.left, NodeBinary)
+                    and isinstance(n.right, NodeBinary)
+                    and n.op == Operation.SUBTRACT
+                    and n.right.op == Operation.ADD):
+                left = NodeBinary(n.left, n.right.right, Operation.SUBTRACT)
+                right = n.right.left
+                n.right = right
+                n.left = left
+            # a / (b * c) -> a / b / с
+            if (not isinstance(n.left, NodeBinary)
+                    and isinstance(n.right, NodeBinary)
+                    and n.op == Operation.DIVIDE
+                    and n.right.op == Operation.MULTIPLY):
+                left = NodeBinary(n.left, n.right.right, Operation.DIVIDE)
                 right = n.right.left
                 n.right = right
                 n.left = left

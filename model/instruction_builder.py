@@ -66,6 +66,9 @@ class InstructionBuilder:
             self._collect_instructions(depth=depth, n=child)
 
     def _group_instructions(self) -> list[list[Instruction]]:
+        if not len(self._instructions):
+            return [[]]
+
         max_depth = max(instruction.depth for instruction in self._instructions)
 
         grouped = [[] for _ in range(max_depth + 1)]

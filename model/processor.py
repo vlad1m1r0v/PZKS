@@ -7,7 +7,7 @@ from model.layers import *
 
 
 class Processor:
-    def __init__(self, layers_num):
+    def __init__(self, layers_num: int):
         self._layers_num = layers_num
         self._tick = 0
         self._memory = Memory()
@@ -25,6 +25,9 @@ class Processor:
         return self._tick
 
     def run(self, instructions: list[Instruction]) -> None:
+        if not (len(instructions)):
+            return
+
         length = max(instruction.complexity for instruction in instructions)
         for nested in self._layers:
             nested.set_instruction_length(length)
@@ -66,4 +69,4 @@ def print_header(layers_num: int) -> None:
 
 def print_tick(tick: int, states: list[str], layers_num: int) -> None:
     print(("{:<10}" + " {:<10}" * (layers_num + 2)).
-          format(tick, states[0], *states))
+          format(tick, *states))
